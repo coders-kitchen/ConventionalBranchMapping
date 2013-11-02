@@ -1,0 +1,26 @@
+apply plugin: 'base'
+
+def defaultEnvironment() {
+        def branch = ""
+        def proc = "git rev-parse --abbrev-ref HEAD".execute()
+        proc.in.eachLine { line -> branch = line }
+        proc.err.eachLine { line -> println line }
+        proc.waitFor()
+        def defaultEnvironment='local'
+        if(branch.startsWith('develop')) {
+                defaultEnvironment='test'
+        } else if (branch.startsWith('release') || 
+                   branch.startsWith('bugfix') || 
+                   branch.startsWith('hotfix')) {
+                defaultEnvironment='staging'
+        } else if(branch.startsWith('master')) {
+                defaultEnvironment='production'
+        }
+        defaultEnvironment
+}
+
+ext.environment = rootProject.hasProperty('env')? rootProject.getProperty('env'): defaultEnvironment()
+logger.quiet "Assembling application for ${environment} environment."
+ext.deploymentConfig = new ConfigSlurper(environment).parse(file("${rootProject.projectDir}/configuration.groovy").toURL())
+
+println "${environment} says '${deploymentConfig.message}'"
