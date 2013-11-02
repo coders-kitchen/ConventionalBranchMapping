@@ -1,5 +1,5 @@
 message = "I'm the default"
-environment {
+environments {
 	production {
 		message = "I am the producing machine"
 	}
